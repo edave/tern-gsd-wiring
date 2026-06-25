@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* React Flow controls themed for the dark canvas */
+.react-flow__controls-button {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #e2e8f0;
+  fill: #e2e8f0;
+}
+.react-flow__controls-button:hover {
+  background: #334155;
+}
+.react-flow__minimap {
+  background: #1e293b;
+}
