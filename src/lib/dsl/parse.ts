@@ -86,11 +86,13 @@ export function parseNetlist(text: string): ParseResult {
   });
 
   const seenNet = new Set<string>();
+  const netById = new Map<string, (typeof netlist.nets)[number]>();
   netlist.nets.forEach((n, ni) => {
     if (seenNet.has(n.id)) {
       issues.push({ path: `nets[${ni}].id`, message: `duplicate net id "${n.id}"` });
     }
     seenNet.add(n.id);
+    netById.set(n.id, n);
     n.members.forEach((m, mi) => {
       const { componentId, terminalId } = parseRef(m);
       const comp = compById.get(componentId);
@@ -103,6 +105,31 @@ export function parseNetlist(text: string): ParseResult {
         issues.push({
           path: `nets[${ni}].members[${mi}]`,
           message: `component "${componentId}" has no terminal "${terminalId}"`,
+        });
+      }
+    });
+  });
+
+  const seenCable = new Set<string>();
+  netlist.cables.forEach((c, ci) => {
+    if (seenCable.has(c.id)) {
+      issues.push({
+        path: `cables[${ci}].id`,
+        message: `duplicate cable id "${c.id}"`,
+      });
+    }
+    seenCable.add(c.id);
+    c.conductors.forEach((netId, wi) => {
+      const net = netById.get(netId);
+      if (!net) {
+        issues.push({
+          path: `cables[${ci}].conductors[${wi}]`,
+          message: `cable "${c.id}" references unknown net "${netId}"`,
+        });
+      } else if (net.members.length !== 2) {
+        issues.push({
+          path: `cables[${ci}].conductors[${wi}]`,
+          message: `cable conductor net "${netId}" must join exactly two terminals (has ${net.members.length})`,
         });
       }
     });

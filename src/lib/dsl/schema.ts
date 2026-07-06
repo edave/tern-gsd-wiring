@@ -40,6 +40,8 @@ export const TerminalSchema = z.object({
   role: TerminalRoleSchema,
   color: z.string().optional(),
   signal: z.string().optional(),
+  /** which side of the node the handle sits on; overrides the auto left/right layout */
+  side: z.enum(["left", "right"]).optional(),
   /** optional power rating for a source output port (used by the power-budget check) */
   maxWatts: z.number().nonnegative().optional(),
 });
@@ -75,6 +77,21 @@ export const NetSchema = z.object({
   members: z.array(RefSchema).min(2, "a net needs at least two members"),
 });
 
+/**
+ * A cable is a physical bundle: several conductor wires that run together inside
+ * one sheath, then fan out to be spliced individually. Each conductor is an
+ * ordinary 2-member net (which already carries its own `color`), so a cable is
+ * purely a rendering grouping — the simulator sees only the underlying nets.
+ */
+export const CableSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().optional(),
+  /** display-only, e.g. "18 AWG" */
+  gauge: z.string().optional(),
+  /** net ids of the conductors bundled in this cable */
+  conductors: z.array(z.string().min(1)).min(1),
+});
+
 export const NetlistMetaSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
@@ -86,6 +103,7 @@ export const NetlistSchema = z.object({
   meta: NetlistMetaSchema,
   components: z.array(ComponentSchema).min(1),
   nets: z.array(NetSchema),
+  cables: z.array(CableSchema).default([]),
 });
 
 export type TerminalRole = z.infer<typeof TerminalRoleSchema>;
@@ -95,5 +113,6 @@ export type Terminal = z.infer<typeof TerminalSchema>;
 export type ComponentProps = z.infer<typeof ComponentPropsSchema>;
 export type Component = z.infer<typeof ComponentSchema>;
 export type Net = z.infer<typeof NetSchema>;
+export type Cable = z.infer<typeof CableSchema>;
 export type NetlistMeta = z.infer<typeof NetlistMetaSchema>;
 export type Netlist = z.infer<typeof NetlistSchema>;

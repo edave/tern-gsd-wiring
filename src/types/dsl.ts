@@ -6,6 +6,7 @@ export type {
   ComponentType,
   ComponentProps,
   Net,
+  Cable,
   Terminal,
   TerminalRole,
   SwitchKind,
