@@ -2,7 +2,7 @@
 
 An interactive electrical wiring simulator for the **Tern GSD Gen2 (R11)** cargo e-bike's
 lighting harness (Bosch Cargo Line Gen 4 / "System 2"). Built to model and **verify** swapping the
-stock headlight for a **Supernova M99 Mini 3 Pro** _before_ touching the real bike.
+stock headlight for a **Supernova Mini 3 Pro** _before_ touching the real bike.
 
 Render the harness as a [React Flow](https://reactflow.dev) diagram, toggle the controls
 (system lights, high beam, left/right brake levers) to watch power and signals propagate and lights
@@ -43,7 +43,7 @@ text + switch positions; everything else is derived and memoized.
 Use the in-app **Wiring DSL** tab to edit the YAML live — the diagram, simulation, and checklist
 update as you type, with validation errors shown inline (the canvas keeps the last valid wiring).
 Three presets live in `src/data/`: **tern-stock** (clean, per the Bosch manual), **as-built** (the
-actual spliced harness from the photos), and **supernova-m99** (the proposed swap). The **Photos**
+actual spliced harness from the photos), and **supernova-mini3** (the proposed swap). The **Photos**
 tab shows the reference harness photos in `public/reference/` to cross-check against the real bike.
 
 Real harnesses join wires at intermediate **connection points**, not just direct port-to-component
@@ -65,10 +65,13 @@ The Bosch Cargo Line Gen 4 (BDU450 CX) is modeled as a `source` with all six por
 
 ## The Supernova check
 
-Loading the **Supernova M99 Mini 3 Pro** preset keeps every functional check passing but flips the
-**power-budget** check to a warning — the M99 (~21W) on the **front-lamp port A** exceeds that port's
-~17W rating (the tail light stays on the separate rear-light port F). That per-port check is exactly
-the pre-install concern this tool is meant to surface.
+Loading the **Supernova Mini 3 Pro** preset keeps every functional check passing but flips the
+**power-budget** check to a warning — in its 21 W high-beam mode the light draws ~21W on the
+**front-lamp port A**, over that port's ~17W rating (the tail light stays on the separate rear-light
+port F). Per the Supernova manual the 21 W mode targets Shimano/TQ/Alber/Brose ports ≥21 W, so on
+Bosch you'd run the 12 W standard high-beam mode (which fits). The Mini 3 Pro also ships with a Bosch
+*Smart System* cable while the GSD Gen2 is Bosch *System 2* — a matching cable is required. That
+per-port check is exactly the pre-install concern this tool surfaces.
 
 ## Stack
 

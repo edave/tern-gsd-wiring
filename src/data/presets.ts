@@ -1,5 +1,5 @@
 import asBuilt from "./as-built";
-import supernovaM99 from "./supernova-m99";
+import supernovaMini3 from "./supernova-mini3";
 import ternStock from "./tern-stock";
 
 export interface Preset {
@@ -10,8 +10,8 @@ export interface Preset {
 
 export const PRESETS: Preset[] = [
   { id: "tern-stock", label: "Tern GSD — Stock (Bosch)", yaml: ternStock },
-  { id: "as-built", label: "As-built (spliced harness)", yaml: asBuilt },
-  { id: "supernova-m99", label: "Supernova M99 Mini 3 Pro", yaml: supernovaM99 },
+  { id: "as-built", label: "As-spliced (real harness)", yaml: asBuilt },
+  { id: "supernova-mini3", label: "Supernova Mini 3 Pro", yaml: supernovaMini3 },
 ];
 
 export const DEFAULT_PRESET_ID = "tern-stock";

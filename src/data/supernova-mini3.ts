@@ -1,14 +1,19 @@
 /**
- * Proposed swap: Supernova M99 Mini 3 Pro on the Bosch front-lamp port (A), keeping
- * the stock tail light on the rear-light port (F) and the brake-lever wiring. High
- * beam is modeled as a generic, re-routable switch into the M99's high-beam input.
- * The M99 (~21W) exceeds the front-lamp port's ~17W rating — flagged before install.
+ * Proposed swap: Supernova Mini 3 Pro (W-MINI3P-MBLK) on the Bosch front-lamp port
+ * A, keeping the stock tail light on rear port F and the brake-lever wiring.
+ *
+ * From the Supernova Mini 3 Pro manual (V 04.2025): 12 V DC; low beam 7 W, high
+ * beam 12 W (standard) or 21 W (programmable); high beam toggled by a magnetic
+ * push-button (micro gold connector) that also doubles as on/off. It ships with a
+ * Bosch SMART SYSTEM cable, but the GSD Gen2 is Bosch System 2 / Gen 4 — a matching
+ * System-2 connection cable is required. The 21 W mode is rated for Shimano/TQ/Alber/
+ * Brose ports >=21 W; on the Bosch ~17 W front port the 12 W standard mode is the fit.
  */
-const supernovaM99 = `meta:
-  id: supernova-m99
-  title: Supernova M99 Mini 3 Pro — Proposed Swap
+const supernovaMini3 = `meta:
+  id: supernova-mini3
+  title: Supernova Mini 3 Pro — Proposed Swap
   bike: Tern GSD Gen2 R11
-  notes: "M99 on Bosch front-lamp port A; tail light stays on rear-light port F. High beam modeled as a generic switch into the M99 high-beam input — re-route the HIGHBEAM source (dedicated switch, Bosch remote, or HBM/brake adapter) as you decide. Verify all four functions before installing."
+  notes: "Supernova Mini 3 Pro, 12V: low beam 7W, high beam 12W standard / 21W programmable. Ships with a Bosch SMART SYSTEM cable (U-SNPC-BS3C1300); the GSD Gen2 is Bosch System 2 / Gen 4, so you need the matching System-2 connection cable. High beam is a magnetic push-button (micro gold connector). The 21W high-beam mode wants a >=21W port (Shimano/TQ/Alber/Brose) — on the Bosch ~17W front port use the 12W standard mode. No tail pass-through: tail stays on Bosch rear port F."
 
 components:
   - id: motor
@@ -23,9 +28,18 @@ components:
       - { id: f_rear, label: "F · Rear light 12V", role: pos, color: black }
       - { id: gnd, label: "GND (common)", role: gnd, color: black }
 
+  - id: snCable
+    type: connector
+    label: Supernova cable (needs Bosch System 2)
+    props:
+      connectorKind: supernova
+    terminals:
+      - { id: in, label: "to motor A", role: pos, color: blue }
+      - { id: out, label: "to light", role: pos, color: blue }
+
   - id: hbSwitch
     type: switch
-    label: High-Beam Switch (re-routable)
+    label: High-Beam Switch (magnetic)
     props:
       switchKind: NO
       controlledBy: highbeam
@@ -35,7 +49,7 @@ components:
 
   - id: frontLight
     type: light
-    label: Supernova M99 Mini 3 Pro
+    label: Supernova Mini 3 Pro
     props:
       powerWatts: 21
     terminals:
@@ -84,10 +98,14 @@ components:
       - { id: p2, label: "pin 2", role: signal-out, color: green }
 
 nets:
-  - id: n_front_12v
-    label: "Front lamp 12V (port A)"
+  - id: n_motor_a
+    label: "Motor port A 12V"
     color: blue
-    members: [motor.a_front, frontLight.pos_in, hbSwitch.in]
+    members: [motor.a_front, snCable.in]
+  - id: n_front_12v
+    label: "Front lamp 12V"
+    color: blue
+    members: [snCable.out, frontLight.pos_in, hbSwitch.in]
   - id: n_gnd
     label: GND (common)
     color: black
@@ -113,4 +131,4 @@ nets:
     members: [brakeConn.p2, tailLight.brk_in]
 `;
 
-export default supernovaM99;
+export default supernovaMini3;

@@ -63,14 +63,15 @@ describe("simulate", () => {
     expect(sim.components.frontLight.on).toBe(true);
   });
 
-  it("as-built: tail powers via the daisy-chain splice; either lever triggers brake via the 3-way splice", () => {
+  it("as-spliced: front & tail power through their numbered connectors; brake (green #2) reaches the tail", () => {
     const ab = load(asBuilt);
 
     const on = simulate(ab, {}, true);
     expect(on.components.frontLight.on).toBe(true);
     expect(on.components.tailLight.on).toBe(true);
 
-    expect(simulate(ab, { brakeL: true }, true).components.tailLight.activeSignals).toContain("BRAKE");
-    expect(simulate(ab, { brakeR: true }, true).components.tailLight.activeSignals).toContain("BRAKE");
+    // High-beam (yellow #4) reaches the front; brake (green #2) reaches the tail.
+    expect(simulate(ab, { highbeam: true }, true).components.frontLight.activeSignals).toContain("HIGHBEAM");
+    expect(simulate(ab, { brake: true }, true).components.tailLight.activeSignals).toContain("BRAKE");
   });
 });

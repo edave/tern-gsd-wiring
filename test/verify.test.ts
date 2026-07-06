@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import asBuilt from "@/data/as-built";
-import supernovaM99 from "@/data/supernova-m99";
+import supernovaMini3 from "@/data/supernova-mini3";
 import ternStock from "@/data/tern-stock";
 import { parseNetlist } from "@/lib/dsl/parse";
 import { verify } from "@/lib/verify";
@@ -29,7 +29,7 @@ describe("verify", () => {
   });
 
   it("supernova swap warns on power budget but keeps all functional checks passing", () => {
-    const results = verify(load(supernovaM99));
+    const results = verify(load(supernovaMini3));
     expect(rule(results, "power-budget").severity).toBe("warn");
     expect(results.filter((r) => r.severity === "fail")).toEqual([]);
   });
@@ -48,9 +48,10 @@ describe("verify", () => {
     expect(rule(verify(n), "signal-BRAKE-either").severity).toBe("fail");
   });
 
-  it("as-built spliced harness passes (lights powered through splices, brake OR via 3-way splice)", () => {
+  it("as-spliced harness passes (lights powered via numbered connectors, high-beam & brake reach)", () => {
     const results = verify(load(asBuilt));
     expect(results.filter((r) => r.severity === "fail")).toEqual([]);
-    expect(rule(results, "signal-BRAKE-either").severity).toBe("pass");
+    expect(rule(results, "signal-HIGHBEAM-reaches").severity).toBe("pass");
+    expect(rule(results, "signal-BRAKE-reaches").severity).toBe("pass");
   });
 });

@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Tern GSD Gen2 Wiring Diagram",
   description:
-    "Interactive electrical wiring simulator for the Tern GSD Gen2 (Bosch System 2) — model and verify the Supernova M99 Mini 3 Pro headlight swap.",
+    "Interactive electrical wiring simulator for the Tern GSD Gen2 (Bosch System 2) — model and verify the Supernova Mini 3 Pro headlight swap.",
 };
 
 export default function RootLayout({

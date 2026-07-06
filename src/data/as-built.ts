@@ -1,47 +1,65 @@
 /**
- * The harness as actually wired on the bike (from the photos): the front light,
- * tail light, and brake levers are interconnected through inline coaxial barrel
- * connectors and several soldered/heat-shrink SPLICES — not direct port-to-component
- * runs. Notably the tail light power is daisy-chained off the front-lamp feed via a
- * splice (so it loads the same port A), and both brake levers join at a 3-way splice
- * before the Higo connector. Use this as the starting point for planning a rewire.
+ * The harness as actually spliced on the bike, transcribed from labeled photos
+ * where every wire is numbered on both sides of its coax/bullet connector and
+ * every cable is tagged with blue tape.
+ *
+ * Cables (blue-tape labels) and their numbered wires:
+ *   - FL Port  (Bosch front-light port): #8 = +12V (red), #1 = GND (black)
+ *   - RL Port  (Bosch rear-light port):  #7 = +12V (red), #6 = GND (black)
+ *   - Front    (headlight pigtail):      #4 = high-beam (yellow), #5 = +12V (black), #6 = GND (black)
+ *   - Rear     (tail-light pigtail):     #7 = +12V (red), #3 = GND (black), #2 = brake (green)
+ *   - HB       (Bosch high-beam/brake accessory): #4 = high-beam (yellow), #2 = brake (green)
+ *
+ * Numbered connectors (each joins the two like-numbered wire ends):
+ *   1 FL Port GND -> ground splice        5 Front +12V  -> 12V/high-beam splice
+ *   2 HB brake    -> Rear (tail) brake     6 Front GND   -> RL Port GND
+ *   3 Tail GND    -> ground splice         7 RL Port +12V-> Tail +12V
+ *   4 HB high-beam-> Front high-beam        8 FL Port +12V-> 12V/high-beam splice
+ *
+ * Front +12V is fed from the FRONT Bosch port and its ground returns via the REAR
+ * port (connector 6); the tail is fed from the REAR port and grounds via the FRONT
+ * port (connectors 3->1) — the drive unit commons both port grounds internally.
  */
 const asBuilt = `meta:
-  id: as-built
-  title: As-built Harness (spliced, from photos)
+  id: as-spliced
+  title: As-spliced Harness (numbered wires, from photos)
   bike: Tern GSD Gen2 R11
-  notes: "Reverse-engineered from the harness photos: coaxial barrel connectors + soldered/heat-shrink splices. Tail power is daisy-chained off the front-lamp feed (loads port A), brake levers join at a 3-way splice. Best-effort — correct each splice to match your bike, then plan the rewire."
+  notes: "Transcribed from labeled photos: each wire numbered on both sides of its coax/bullet connector (1-8), each cable blue-taped (FL Port, RL Port, Front, Rear, HB). High-beam (yellow #4) and brake (green #2) ride the Bosch HB accessory cable. Connectors: 1 FLgnd->gndSplice, 2 HBbrake->tail, 3 tailGnd->gndSplice, 4 HBhb->front, 5 front+->hbSplice, 6 frontGnd->RLgnd, 7 RL+->tail+, 8 FL+->hbSplice."
 
 components:
   - id: motor
     type: source
     label: Bosch Cargo Line Gen 4 (BDU450 CX)
     terminals:
-      - { id: a_front, label: "A · Front lamp 12V", role: pos, color: blue, maxWatts: 17 }
-      - { id: b_speed, label: "B · Speed sensor 3.3V", role: pos, color: gray }
-      - { id: c_batt, label: "C · Battery 36V", role: pos, color: black }
-      - { id: d_disp, label: "D · Display 12V", role: pos, color: black }
-      - { id: e_power, label: "E · Power Port 12V", role: pos, color: black }
-      - { id: f_rear, label: "F · Rear light 12V (unused)", role: pos, color: black }
-      - { id: gnd, label: "GND (common)", role: gnd, color: black }
+      - { id: fl_pos, label: "FL Port +12V (#8)", role: pos, color: red, maxWatts: 17 }
+      - { id: fl_gnd, label: "FL Port GND (#1)", role: gnd, color: black }
+      - { id: rl_pos, label: "RL Port +12V (#7)", role: pos, color: red, maxWatts: 12 }
+      - { id: rl_gnd, label: "RL Port GND (#6)", role: gnd, color: black }
 
-  - id: coaxA
+  - id: conn8
     type: connector
-    label: Coax barrel (front 12V)
-    props:
-      connectorKind: coax
+    label: "⑧ FL+ ↔ HB splice"
+    props: { connectorKind: bullet }
     terminals:
-      - { id: in, label: "in", role: pos, color: blue }
-      - { id: out, label: "out", role: pos, color: blue }
+      - { id: a, label: "FL Port side", role: pos, color: red }
+      - { id: b, label: "HB splice side", role: pos, color: red }
 
-  - id: spliceA
-    type: splice
-    label: 12V feed splice
+  - id: conn1
+    type: connector
+    label: "① FL GND ↔ gnd splice"
+    props: { connectorKind: bullet }
     terminals:
-      - { id: feed, label: "from motor", role: pos, color: blue }
-      - { id: to_front, label: "to headlight", role: pos, color: blue }
-      - { id: to_hb, label: "to HB switch", role: pos, color: blue }
-      - { id: to_tail, label: "to tail (daisy)", role: pos, color: red }
+      - { id: a, label: "FL Port side", role: gnd, color: black }
+      - { id: b, label: "gnd splice side", role: gnd, color: black }
+
+  - id: spliceHB
+    type: splice
+    label: 12V + High-Beam splice
+    terminals:
+      - { id: feed, label: "from FL+ (#8)", role: pos, color: red, side: left }
+      - { id: to_front, label: "to Front + (#5)", role: pos, color: red, side: right }
+      - { id: to_hb, label: "to HB switch", role: pos, color: red, side: right }
+      - { id: to_brk, label: "to brake switch", role: pos, color: red, side: right }
 
   - id: hbSwitch
     type: switch
@@ -50,8 +68,34 @@ components:
       switchKind: NO
       controlledBy: highbeam
     terminals:
-      - { id: in, label: "12V in", role: pos, color: blue }
-      - { id: out, label: "HB out", role: signal-out, color: yellow, signal: HIGHBEAM }
+      - { id: in, label: "12V in", role: pos, color: red }
+      - { id: out, label: "HB out (#4)", role: signal-out, color: yellow, signal: HIGHBEAM }
+
+  - id: brakeSwitch
+    type: switch
+    label: Brake (Bosch signal)
+    props:
+      switchKind: NO
+      controlledBy: brake
+    terminals:
+      - { id: in, label: "12V in", role: pos, color: red }
+      - { id: out, label: "brake out (#2)", role: signal-out, color: green, signal: BRAKE }
+
+  - id: conn4
+    type: connector
+    label: "④ HB ↔ Front high-beam"
+    props: { connectorKind: bullet }
+    terminals:
+      - { id: a, label: "HB side", role: passthrough, color: yellow }
+      - { id: b, label: "Front side", role: passthrough, color: yellow }
+
+  - id: conn5
+    type: connector
+    label: "⑤ Front+ ↔ HB splice"
+    props: { connectorKind: bullet }
+    terminals:
+      - { id: a, label: "Front side", role: pos, color: red }
+      - { id: b, label: "HB splice side", role: pos, color: red }
 
   - id: frontLight
     type: light
@@ -59,18 +103,41 @@ components:
     props:
       powerWatts: 11
     terminals:
-      - { id: pos_in, label: "12V+ in", role: pos, color: blue }
-      - { id: gnd_in, label: "GND in", role: gnd, color: black }
-      - { id: hb_in, label: "High beam", role: signal-in, color: yellow, signal: HIGHBEAM }
+      - { id: pos_in, label: "+12V in (#5)", role: pos, color: black }
+      - { id: gnd_in, label: "GND in (#6)", role: gnd, color: black }
+      - { id: hb_in, label: "High beam (#4)", role: signal-in, color: yellow, signal: HIGHBEAM }
 
-  - id: coaxTail
+  - id: conn6
     type: connector
-    label: Coax barrel (tail 12V)
-    props:
-      connectorKind: coax
+    label: "⑥ Front GND ↔ RL GND"
+    props: { connectorKind: bullet }
     terminals:
-      - { id: in, label: "in", role: pos, color: red }
-      - { id: out, label: "out", role: pos, color: red }
+      - { id: a, label: "Front side", role: gnd, color: black }
+      - { id: b, label: "RL Port side", role: gnd, color: black }
+
+  - id: conn7
+    type: connector
+    label: "⑦ RL+ ↔ Tail+"
+    props: { connectorKind: bullet }
+    terminals:
+      - { id: a, label: "RL Port side", role: pos, color: red }
+      - { id: b, label: "Tail side", role: pos, color: red }
+
+  - id: conn2
+    type: connector
+    label: "② HB brake ↔ Tail"
+    props: { connectorKind: bullet }
+    terminals:
+      - { id: a, label: "HB side", role: passthrough, color: green }
+      - { id: b, label: "Tail side", role: passthrough, color: green }
+
+  - id: conn3
+    type: connector
+    label: "③ Tail GND ↔ gnd splice"
+    props: { connectorKind: bullet }
+    terminals:
+      - { id: a, label: "Tail side", role: gnd, color: black }
+      - { id: b, label: "gnd splice side", role: gnd, color: black }
 
   - id: tailLight
     type: light
@@ -79,76 +146,63 @@ components:
       powerWatts: 6
       brightensOnSignal: BRAKE
     terminals:
-      - { id: pos_in, label: "12V+ in", role: pos, color: red }
-      - { id: gnd_in, label: "GND in", role: gnd, color: black }
-      - { id: brk_in, label: "Brake in", role: signal-in, color: green, signal: BRAKE }
+      - { id: pos_in, label: "+12V in (#7)", role: pos, color: red }
+      - { id: gnd_in, label: "GND in (#3)", role: gnd, color: black }
+      - { id: brk_in, label: "Brake in (#2)", role: signal-in, color: green, signal: BRAKE }
 
   - id: spliceGnd
     type: splice
-    label: Ground splice
+    label: Common ground splice
     terminals:
-      - { id: m, label: "from motor", role: gnd, color: black }
-      - { id: f, label: "front", role: gnd, color: black }
-      - { id: t, label: "tail", role: gnd, color: black }
-      - { id: bl, label: "brake L", role: gnd, color: black }
-      - { id: br, label: "brake R", role: gnd, color: black }
-
-  - id: brakeL
-    type: switch
-    label: Left Brake Lever
-    props:
-      switchKind: NO
-      controlledBy: brakeL
-    terminals:
-      - { id: a, label: common, role: gnd, color: black }
-      - { id: b, label: "brake out", role: signal-out, color: green, signal: BRAKE }
-
-  - id: brakeR
-    type: switch
-    label: Right Brake Lever
-    props:
-      switchKind: NO
-      controlledBy: brakeR
-    terminals:
-      - { id: a, label: common, role: gnd, color: black }
-      - { id: b, label: "brake out", role: signal-out, color: green, signal: BRAKE }
-
-  - id: spliceBrake
-    type: splice
-    label: Brake splice (levers join)
-    terminals:
-      - { id: l, label: "left lever", role: signal-in, color: green }
-      - { id: r, label: "right lever", role: signal-in, color: green }
-      - { id: out, label: "to tail", role: signal-out, color: green, signal: BRAKE }
-
-  - id: brakeConn
-    type: connector
-    label: Higo 2-pin (brake)
-    props:
-      connectorKind: higo
-    terminals:
-      - { id: p1, label: "pin 1", role: signal-in, color: green }
-      - { id: p2, label: "pin 2", role: signal-out, color: green }
+      - { id: fl, label: "FL Port GND (#1)", role: gnd, color: black, side: left }
+      - { id: t, label: "Tail GND (#3)", role: gnd, color: black, side: left }
 
 nets:
-  - { id: nm_a_coax,      color: blue,  members: [motor.a_front, coaxA.in] }
-  - { id: nm_coax_splice, color: blue,  members: [coaxA.out, spliceA.feed] }
-  - { id: nm_splice_front,color: blue,  members: [spliceA.to_front, frontLight.pos_in] }
-  - { id: nm_splice_hb,   color: blue,  members: [spliceA.to_hb, hbSwitch.in] }
-  - { id: nm_splice_tail, color: red,   members: [spliceA.to_tail, coaxTail.in] }
-  - { id: nm_coaxtail,    color: red,   members: [coaxTail.out, tailLight.pos_in] }
-  - { id: nm_hb,          color: yellow, signal: HIGHBEAM, members: [hbSwitch.out, frontLight.hb_in] }
+  # ---- Cable conductors (grouped into cables below) ----
+  # FL Port cable
+  - { id: n_fl_pos, color: red,   members: [motor.fl_pos, conn8.a] }
+  - { id: n_fl_gnd, color: black, members: [motor.fl_gnd, conn1.a] }
+  # RL Port cable
+  - { id: n_rl_pos, color: red,   members: [motor.rl_pos, conn7.a] }
+  - { id: n_rl_gnd, color: black, members: [motor.rl_gnd, conn6.b] }
+  # Front headlight pigtail
+  - { id: n_fr_hb,  color: yellow, signal: HIGHBEAM, members: [frontLight.hb_in, conn4.b] }
+  - { id: n_fr_pos, color: black,  members: [frontLight.pos_in, conn5.a] }
+  - { id: n_fr_gnd, color: black,  members: [frontLight.gnd_in, conn6.a] }
+  # Rear (tail) pigtail
+  - { id: n_tl_pos, color: red,   members: [tailLight.pos_in, conn7.b] }
+  - { id: n_tl_gnd, color: black, members: [tailLight.gnd_in, conn3.a] }
+  - { id: n_tl_brk, color: green, signal: BRAKE, members: [tailLight.brk_in, conn2.b] }
 
-  - { id: ng_motor, color: black, members: [motor.gnd, spliceGnd.m] }
-  - { id: ng_front, color: black, members: [spliceGnd.f, frontLight.gnd_in] }
-  - { id: ng_tail,  color: black, members: [spliceGnd.t, tailLight.gnd_in] }
-  - { id: ng_bl,    color: black, members: [spliceGnd.bl, brakeL.a] }
-  - { id: ng_br,    color: black, members: [spliceGnd.br, brakeR.a] }
+  # ---- Connector far sides -> splices / switches ----
+  - { id: n_c8, color: red,    members: [conn8.b, spliceHB.feed] }
+  - { id: n_c5, color: red,    members: [conn5.b, spliceHB.to_front] }
+  - { id: n_c4, color: yellow, signal: HIGHBEAM, members: [conn4.a, hbSwitch.out] }
+  - { id: n_c2, color: green,  signal: BRAKE, members: [conn2.a, brakeSwitch.out] }
+  - { id: n_c1, color: black,  members: [conn1.b, spliceGnd.fl] }
+  - { id: n_c3, color: black,  members: [conn3.b, spliceGnd.t] }
 
-  - { id: nb_l,    color: green, signal: BRAKE, members: [brakeL.b, spliceBrake.l] }
-  - { id: nb_r,    color: green, signal: BRAKE, members: [brakeR.b, spliceBrake.r] }
-  - { id: nb_out,  color: green, signal: BRAKE, members: [spliceBrake.out, brakeConn.p1] }
-  - { id: nb_tail, color: green, signal: BRAKE, members: [brakeConn.p2, tailLight.brk_in] }
+  # ---- 12V feeds to the signal switches (off the HB splice) ----
+  - { id: n_hb_feed,  color: red, members: [spliceHB.to_hb, hbSwitch.in] }
+  - { id: n_brk_feed, color: red, members: [spliceHB.to_brk, brakeSwitch.in] }
+
+cables:
+  - id: cableFLPort
+    label: "FL Port (Bosch front)"
+    gauge: "18 AWG"
+    conductors: [n_fl_pos, n_fl_gnd]
+  - id: cableRLPort
+    label: "RL Port (Bosch rear)"
+    gauge: "18 AWG"
+    conductors: [n_rl_pos, n_rl_gnd]
+  - id: cableFront
+    label: "Front (headlight)"
+    gauge: "20 AWG"
+    conductors: [n_fr_pos, n_fr_gnd, n_fr_hb]
+  - id: cableRear
+    label: "Rear (tail light)"
+    gauge: "20 AWG"
+    conductors: [n_tl_pos, n_tl_gnd, n_tl_brk]
 `;
 
 export default asBuilt;
