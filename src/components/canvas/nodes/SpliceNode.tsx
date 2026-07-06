@@ -1,5 +1,6 @@
 import type { NodeProps } from "@xyflow/react";
 import type { WiringNode } from "@/lib/buildFlow";
+import { terminalSide } from "@/lib/sides";
 import type { Terminal } from "@/types/dsl";
 import { TerminalDot } from "./BaseNode";
 
@@ -20,9 +21,13 @@ export function SpliceNode({ data }: NodeProps<WiringNode>) {
         (t.signal && sim?.activeSignals.includes(t.signal)),
     );
 
-  const half = Math.ceil(c.terminals.length / 2);
-  const left = c.terminals.slice(0, half);
-  const right = c.terminals.slice(half);
+  const total = c.terminals.length;
+  const left = c.terminals.filter(
+    (t, i) => terminalSide(t, c.type, i, total) === "left",
+  );
+  const right = c.terminals.filter(
+    (t, i) => terminalSide(t, c.type, i, total) === "right",
+  );
   const live =
     (sim?.poweredTerminals.size ?? 0) > 0 ||
     (sim?.groundedTerminals.size ?? 0) > 0;

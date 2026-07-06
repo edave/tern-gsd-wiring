@@ -12,6 +12,7 @@ import { useEffect, useMemo } from "react";
 import type { WiringEdge, WiringNode } from "@/lib/buildFlow";
 import { useStore } from "@/state/store";
 import type { SimResult } from "@/types/sim";
+import { edgeTypes } from "./edges/CableEdge";
 import { nodeTypes } from "./nodeTypes";
 
 interface Props {
@@ -48,7 +49,9 @@ export function WiringCanvas({ nodes: baseNodes, edges: baseEdges, sim }: Props)
           : false;
         const energized = n.data.netId
           ? (sim?.energizedNets.has(n.data.netId) ?? false)
-          : undefined;
+          : n.data.netIds
+            ? n.data.netIds.some((id) => sim?.energizedNets.has(id) ?? false)
+            : undefined;
         return {
           ...n,
           data: {
@@ -66,16 +69,22 @@ export function WiringCanvas({ nodes: baseNodes, edges: baseEdges, sim }: Props)
     () =>
       baseEdges.map((e) => {
         const color = e.data?.color ?? "#9ca3af";
-        const energized = e.data?.netId
-          ? (sim?.energizedNets.has(e.data.netId) ?? false)
-          : false;
+        const netIds = e.data?.netIds ?? (e.data?.netId ? [e.data.netId] : []);
+        const energized = netIds.some(
+          (id) => sim?.energizedNets.has(id) ?? false,
+        );
+        // Cable trunks style themselves (thick sheath) via the custom edge; only
+        // pass through the energized flag so they can brighten.
+        if (e.type === "cable" && e.data) {
+          return { ...e, animated: energized, data: { ...e.data, energized } };
+        }
         return {
           ...e,
           animated: energized,
           style: {
             stroke: color,
-            strokeWidth: energized ? 3.5 : 2,
-            opacity: energized ? 1 : 0.4,
+            strokeWidth: energized ? 3.5 : 2.2,
+            opacity: energized ? 1 : 0.62,
           },
         };
       }),
@@ -87,6 +96,7 @@ export function WiringCanvas({ nodes: baseNodes, edges: baseEdges, sim }: Props)
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.25}
@@ -100,7 +110,11 @@ export function WiringCanvas({ nodes: baseNodes, edges: baseEdges, sim }: Props)
       <MiniMap
         pannable
         zoomable
-        nodeColor={(n) => (n.type === "junction" ? "#64748b" : "#1e293b")}
+        nodeColor={(n) =>
+          n.type === "junction" || n.type === "cableBreakout"
+            ? "#64748b"
+            : "#1e293b"
+        }
         nodeStrokeColor="#475569"
         maskColor="rgba(15,23,42,0.72)"
       />

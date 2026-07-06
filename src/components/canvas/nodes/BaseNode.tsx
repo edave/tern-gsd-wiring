@@ -1,13 +1,9 @@
 import { Handle, Position } from "@xyflow/react";
 import type { CSSProperties, ReactNode } from "react";
 import { roleColor, wireColor } from "@/lib/colors";
-import type { Component, ComponentType, Terminal } from "@/types/dsl";
+import { terminalSide } from "@/lib/sides";
+import type { Component, Terminal } from "@/types/dsl";
 import type { ComponentSimState } from "@/types/sim";
-
-function onLeft(t: Terminal, type: ComponentType): boolean {
-  if (type === "source") return false; // a source's ports are all outputs → right side
-  return t.role === "pos" || t.role === "signal-in";
-}
 
 /** One terminal = a colored dot with overlapping source+target handles (edges are undirected). */
 export function TerminalDot({
@@ -88,8 +84,13 @@ export function BaseNode({
   glow,
   status,
 }: BaseNodeProps) {
-  const left = component.terminals.filter((t) => onLeft(t, component.type));
-  const right = component.terminals.filter((t) => !onLeft(t, component.type));
+  const total = component.terminals.length;
+  const left = component.terminals.filter(
+    (t, i) => terminalSide(t, component.type, i, total) === "left",
+  );
+  const right = component.terminals.filter(
+    (t, i) => terminalSide(t, component.type, i, total) === "right",
+  );
   const isActive = (t: Terminal): boolean =>
     Boolean(
       sim?.poweredTerminals.has(t.id) ||
